@@ -84,6 +84,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@expo/vector-icons':
+        specifier: ^14.0.4
+        version: 14.0.4
       '@nexora/api':
         specifier: workspace:*
         version: link:../../packages/api
