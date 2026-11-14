@@ -47,6 +47,15 @@ export interface ServiceRequest {
   updated_at: string;
 }
 
+export interface EnrichedServiceRequest extends ServiceRequest {
+  service?: Partial<ServiceItem>;
+  user?: {
+    email?: string;
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
+
 export interface SubscriptionPlan {
   id: string;
   name: string;

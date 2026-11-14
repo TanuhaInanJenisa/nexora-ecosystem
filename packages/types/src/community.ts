@@ -13,6 +13,23 @@ export interface CommunityPost {
   updated_at: string;
 }
 
+export interface EnrichedCommunityPost extends CommunityPost {
+  author?: {
+    full_name?: string;
+    avatar_url?: string;
+    email?: string;
+  };
+  is_liked_by_me?: boolean;
+}
+
+export interface EnrichedPostComment extends PostComment {
+  author?: {
+    full_name?: string;
+    avatar_url?: string;
+    email?: string;
+  };
+}
+
 export interface PostComment {
   id: string;
   post_id: string;

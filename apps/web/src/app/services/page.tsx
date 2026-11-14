@@ -1,11 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { Button, Badge } from '@nexora/ui';
-import { Search, Star, ArrowRight, Check } from 'lucide-react';
+import { Button, Badge, Modal, useToast, useAuth } from '@nexora/ui';
+import { getBrowserClient, createServiceRequest } from '@nexora/api';
+import { Search, Star, ArrowRight, Check, Calendar, FileText, Send, Sparkles } from 'lucide-react';
 
-const SERVICES = [
+interface ServiceDefinition {
+  id: string;
+  title: string;
+  category: string;
+  desc: string;
+  priceBDT: string;
+  priceUSD: string;
+  priceNum: number;
+  turnaround: string;
+  rating: string;
+  reviews: number;
+  features: string[];
+}
+
+const SERVICES: ServiceDefinition[] = [
   {
     id: 'srv-1',
     title: 'Autonomous AI Agent Workflow Engine',
@@ -13,6 +27,7 @@ const SERVICES = [
     desc: 'Custom multi-agent cognitive architecture with long-term memory, external tools integration, and human approval gates.',
     priceBDT: '৳15,000',
     priceUSD: '$120',
+    priceNum: 120,
     turnaround: '3 Days',
     rating: '4.9',
     reviews: 38,
@@ -25,6 +40,7 @@ const SERVICES = [
     desc: 'Production Next.js 14 + React Native Expo monorepo with Turborepo, shared packages, and typed contracts.',
     priceBDT: '৳35,000',
     priceUSD: '$290',
+    priceNum: 290,
     turnaround: '7 Days',
     rating: '5.0',
     reviews: 62,
@@ -37,6 +53,7 @@ const SERVICES = [
     desc: 'Exhaustive PostgreSQL audit, Row Level Security policies implementation, and penetration testing verification.',
     priceBDT: '৳20,000',
     priceUSD: '$160',
+    priceNum: 160,
     turnaround: '2 Days',
     rating: '4.8',
     reviews: 24,
@@ -49,6 +66,7 @@ const SERVICES = [
     desc: 'Automated GitHub Actions, Docker containers, multi-environment deployments to Vercel, EAS, and Supabase.',
     priceBDT: '৳18,000',
     priceUSD: '$145',
+    priceNum: 145,
     turnaround: '3 Days',
     rating: '4.9',
     reviews: 19,
@@ -61,6 +79,7 @@ const SERVICES = [
     desc: 'Dynamic 8-tier role-based access control, remote feature overrides, and audit event dispatchers.',
     priceBDT: '৳25,000',
     priceUSD: '$200',
+    priceNum: 200,
     turnaround: '4 Days',
     rating: '4.9',
     reviews: 41,
@@ -73,6 +92,7 @@ const SERVICES = [
     desc: 'Interactive telemetry dashboards, metrics charts, and live real-time status monitors for business ops.',
     priceBDT: '৳22,000',
     priceUSD: '$180',
+    priceNum: 180,
     turnaround: '4 Days',
     rating: '4.7',
     reviews: 15,
@@ -83,8 +103,18 @@ const SERVICES = [
 const CATEGORIES = ['All', 'AI & Automation', 'Web & Mobile', 'Security & RLS', 'Cloud & DevOps', 'Business Logic'];
 
 export default function ServicesPage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Booking Modal State
+  const [bookingService, setBookingService] = useState<ServiceDefinition | null>(null);
+  const [bookingNotes, setBookingNotes] = useState('');
+  const [bookingDate, setBookingDate] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const client = getBrowserClient();
 
   const filtered = SERVICES.filter((s) => {
     const matchCat = selectedCategory === 'All' || s.category === selectedCategory;
@@ -95,11 +125,58 @@ export default function ServicesPage() {
     return matchCat && matchQuery;
   });
 
+  const handleOpenBooking = (srv: ServiceDefinition) => {
+    setBookingService(srv);
+    setBookingNotes('');
+    setBookingDate(new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]);
+  };
+
+  const handleSubmitBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookingService) return;
+
+    if (!user) {
+      toast({
+        type: 'warning',
+        title: 'Authentication Required',
+        message: 'Please sign in to confirm service requests and track fulfillment.',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    const created = await createServiceRequest(client, {
+      service_id: bookingService.id,
+      user_id: user.id,
+      notes: bookingNotes,
+      scheduled_at: bookingDate ? new Date(bookingDate).toISOString() : undefined,
+      total_amount: bookingService.priceNum,
+      currency: 'USD',
+    });
+
+    if (created) {
+      toast({
+        type: 'success',
+        title: 'Service Request Dispatched',
+        message: `Your booking for "${bookingService.title}" is confirmed. Request ID: ${created.id}.`,
+      });
+      setBookingService(null);
+    } else {
+      toast({
+        type: 'error',
+        title: 'Booking Error',
+        message: 'Unable to schedule service request. Please try again.',
+      });
+    }
+    setIsSubmitting(false);
+  };
+
   return (
     <div className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+          <Sparkles className="w-3.5 h-3.5" />
           Services Directory
         </div>
         <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight">
@@ -145,7 +222,7 @@ export default function ServicesPage() {
         {filtered.map((srv) => (
           <div
             key={srv.id}
-            className="p-8 rounded-2xl bg-[#0F172A] border border-white/10 flex flex-col justify-between hover:border-indigo-500/40 transition-all hover:-translate-y-1"
+            className="p-8 rounded-2xl bg-[#0F172A] border border-white/10 flex flex-col justify-between hover:border-indigo-500/40 transition-all hover:-translate-y-1 shadow-lg"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -173,19 +250,102 @@ export default function ServicesPage() {
             <div className="pt-6 border-t border-white/5 flex items-center justify-between">
               <div>
                 <div className="text-[10px] text-slate-500 font-semibold uppercase">Fixed Rate</div>
-                <div className="text-base font-black text-indigo-400">{srv.priceBDT} <span className="text-xs text-slate-500">({srv.priceUSD})</span></div>
+                <div className="text-base font-black text-indigo-400">
+                  {srv.priceBDT} <span className="text-xs text-slate-500">({srv.priceUSD})</span>
+                </div>
               </div>
 
-              <Link href="/contact">
-                <Button size="sm" variant="primary">
-                  Book Now
-                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </Button>
-              </Link>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => handleOpenBooking(srv)}
+              >
+                Book Now
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Interactive Booking Modal */}
+      {bookingService && (
+        <Modal
+          isOpen={!!bookingService}
+          onClose={() => setBookingService(null)}
+          title={`Book: ${bookingService.title}`}
+          maxWidth="md"
+        >
+          <form onSubmit={handleSubmitBooking} className="space-y-4">
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400">Standard Price:</span>
+                <span className="text-emerald-400 font-bold font-mono text-sm">
+                  {bookingService.priceBDT} ({bookingService.priceUSD})
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400">Estimated Delivery:</span>
+                <span className="text-slate-200 font-semibold">{bookingService.turnaround}</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                Target Start Date
+              </label>
+              <input
+                type="date"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                required
+                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                Project Specifications & Requirements
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Provide repository links, target features, or architectural requirements..."
+                value={bookingNotes}
+                onChange={(e) => setBookingNotes(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none"
+              />
+            </div>
+
+            {!user && (
+              <p className="text-[11px] text-amber-400 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                Notice: You must be logged in to confirm. You will be prompted to log in upon submitting.
+              </p>
+            )}
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setBookingService(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                isLoading={isSubmitting}
+              >
+                <Send className="w-3.5 h-3.5 mr-1.5" />
+                Confirm Booking Request
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

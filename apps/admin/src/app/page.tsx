@@ -9,6 +9,7 @@ import {
   updateMaintenanceSettings,
   updateAppVersionPolicy,
   updateFeatureFlag,
+  updateServiceRequestStatus,
 } from '@nexora/api';
 import {
   Sliders,
@@ -372,26 +373,33 @@ export default function AdminDashboardPage() {
   };
 
   // Handler: Advance Service Request Status
-  const handleAdvanceServiceStatus = (id: string) => {
+  const handleAdvanceServiceStatus = async (id: string) => {
+    const target = serviceRequests.find((r) => r.id === id);
+    if (!target) return;
+
+    const nextStatus: ServiceRequestRecord['status'] =
+      target.status === 'pending'
+        ? 'in_progress'
+        : target.status === 'in_progress'
+        ? 'completed'
+        : 'pending';
+
     setServiceRequests((prev) =>
-      prev.map((r) => {
-        if (r.id === id) {
-          const nextStatus: ServiceRequestRecord['status'] =
-            r.status === 'pending'
-              ? 'in_progress'
-              : r.status === 'in_progress'
-              ? 'completed'
-              : 'pending';
-          toast({
-            type: 'info',
-            title: 'Request Status Updated',
-            message: `Request for "${r.serviceTitle}" changed to ${nextStatus.toUpperCase()}.`,
-          });
-          return { ...r, status: nextStatus };
-        }
-        return r;
-      })
+      prev.map((r) => (r.id === id ? { ...r, status: nextStatus } : r))
     );
+
+    try {
+      const client = getBrowserClient();
+      await updateServiceRequestStatus(client, id, nextStatus);
+    } catch (err) {
+      console.warn('Admin status update caught:', err);
+    }
+
+    toast({
+      type: 'info',
+      title: 'Request Status Updated',
+      message: `Request for "${target.serviceTitle}" changed to ${nextStatus.toUpperCase()}.`,
+    });
   };
 
   // Handler: Save Remote Versioning

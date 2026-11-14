@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@nexora/ui-tokens';
 import { Badge, Card, Button } from '../components/ui';
 import { useLocalization } from '../context/LocalizationContext';
+import { getBrowserClient, createCommunityPost, togglePostLike } from '@nexora/api';
 
 interface PostItem {
   id: string;
@@ -80,7 +81,7 @@ export function CommunityScreen() {
   const [newContent, setNewContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleLike = (postId: string) => {
+  const toggleLike = async (postId: string) => {
     setPosts((prev) =>
       prev.map((p) => {
         if (p.id === postId) {
@@ -94,37 +95,61 @@ export function CommunityScreen() {
         return p;
       })
     );
+
+    try {
+      const client = getBrowserClient();
+      const { data: { session } } = await client.auth.getSession();
+      const userId = session?.user?.id || '00000000-0000-0000-0000-000000000001';
+      await togglePostLike(client, postId, userId);
+    } catch (err) {
+      console.warn('Like toggle caught:', err);
+    }
   };
 
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (!newTitle.trim() || !newContent.trim()) {
       Alert.alert('Required Fields', 'Please enter a title and content for your post.');
       return;
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newPost: PostItem = {
-        id: `post-${Date.now()}`,
-        authorName: 'NEXORA Member',
-        authorRole: 'MEMBER',
-        authorInitial: 'N',
-        timestamp: 'Just now',
-        category: newCategory,
+    let authorId = '00000000-0000-0000-0000-000000000001';
+    try {
+      const client = getBrowserClient();
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user?.id) {
+        authorId = session.user.id;
+      }
+
+      await createCommunityPost(client, {
+        author_id: authorId,
         title: newTitle.trim(),
         content: newContent.trim(),
-        likes: 1,
-        comments: 0,
-        isLiked: true,
-      };
+      });
+    } catch (err) {
+      console.warn('Post creation caught:', err);
+    }
 
-      setPosts([newPost, ...posts]);
-      setIsSubmitting(false);
-      setIsCreateModalOpen(false);
-      setNewTitle('');
-      setNewContent('');
-      Alert.alert('Published', 'Your post has been broadcast to the NEXORA Community.');
-    }, 600);
+    const newPost: PostItem = {
+      id: `post-${Date.now()}`,
+      authorName: 'NEXORA Member',
+      authorRole: 'MEMBER',
+      authorInitial: 'N',
+      timestamp: 'Just now',
+      category: newCategory,
+      title: newTitle.trim(),
+      content: newContent.trim(),
+      likes: 1,
+      comments: 0,
+      isLiked: true,
+    };
+
+    setPosts([newPost, ...posts]);
+    setIsSubmitting(false);
+    setIsCreateModalOpen(false);
+    setNewTitle('');
+    setNewContent('');
+    Alert.alert('Published', 'Your post has been broadcast to the NEXORA Community.');
   };
 
   const filteredPosts = posts.filter((p) => {

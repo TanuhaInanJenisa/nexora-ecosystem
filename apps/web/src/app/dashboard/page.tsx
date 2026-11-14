@@ -1,10 +1,16 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, Button, Card, CardHeader, CardTitle, CardContent, Badge } from '@nexora/ui';
 import { APP_NAME } from '@nexora/shared';
+import type { EnrichedServiceRequest } from '@nexora/types';
+import {
+  getBrowserClient,
+  fetchUserServiceRequests,
+  subscribeToServiceRequests,
+} from '@nexora/api';
 import {
   User,
   LogOut,
@@ -13,17 +19,51 @@ import {
   MessageSquare,
   Shield,
   ArrowRight,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, profile, roles, isLoading, signOut } = useAuth();
+  const [requests, setRequests] = useState<EnrichedServiceRequest[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+
+  const client = getBrowserClient();
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login');
     }
   }, [user, isLoading, router]);
+
+  const loadRequests = useCallback(async () => {
+    if (!user) return;
+    try {
+      const fetched = await fetchUserServiceRequests(client, user.id);
+      setRequests(fetched);
+    } catch (err) {
+      console.warn('Could not load user service requests:', err);
+    } finally {
+      setIsLoadingRequests(false);
+    }
+  }, [client, user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    loadRequests();
+
+    const unsubscribe = subscribeToServiceRequests(client, () => {
+      loadRequests();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user, loadRequests, client]);
 
   if (isLoading || !user) {
     return (
@@ -133,11 +173,11 @@ export default function DashboardPage() {
               <CreditCard className="w-4 h-4 text-cyan-400" />
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="text-xl font-bold text-white">Starter Plan</div>
-              <p className="text-xs text-slate-400">5 monthly service requests included</p>
+              <div className="text-xl font-bold text-white">Enterprise Tier</div>
+              <p className="text-xs text-slate-400">Priority SLA & Unlimited Modules</p>
               <div className="pt-2">
-                <Link href="/pricing" className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
-                  Upgrade to Pro &rarr;
+                <Link href="/services" className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+                  Browse Catalog &rarr;
                 </Link>
               </div>
             </CardContent>
@@ -145,12 +185,12 @@ export default function DashboardPage() {
 
           <Card className="border-slate-800 bg-slate-900/60">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-400">Community Activity</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-400">Community Hub</CardTitle>
               <MessageSquare className="w-4 h-4 text-violet-400" />
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="text-xl font-bold text-white">Active Discussions</div>
-              <p className="text-xs text-slate-400">Connect with founders and staff</p>
+              <div className="text-xl font-bold text-white">Live Feed</div>
+              <p className="text-xs text-slate-400">Share updates and discuss architectures</p>
               <div className="pt-2">
                 <Link href="/community" className="text-xs text-violet-400 hover:text-violet-300 font-semibold">
                   Open Feed &rarr;
@@ -158,6 +198,95 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* My Service Requests Ledger */}
+        <div className="p-8 rounded-3xl bg-[#0F172A] border border-white/10 shadow-xl space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-400" />
+                My Service Requests
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Live status and progression tracking for your commissioned ecosystem services.
+              </p>
+            </div>
+
+            <Link href="/services">
+              <Button size="sm" variant="outline" className="text-xs">
+                Request New Service +
+              </Button>
+            </Link>
+          </div>
+
+          {isLoadingRequests ? (
+            <div className="py-8 text-center text-xs text-slate-500 animate-pulse">
+              Loading your commissioned requests...
+            </div>
+          ) : requests.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-white/5 border border-white/5 text-center space-y-3">
+              <Clock className="w-8 h-8 text-slate-500 mx-auto" />
+              <p className="text-sm text-slate-300 font-semibold">No Active Requests Yet</p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Commission enterprise cloud architecture, autonomous AI agents, or security audits to get started.
+              </p>
+              <Link href="/services">
+                <Button size="sm" variant="primary">
+                  Explore Services Directory
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {requests.map((req) => (
+                <div key={req.id} className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">
+                        {req.service?.title || `Service #${req.service_id}`}
+                      </span>
+                      <Badge
+                        variant={
+                          req.status === 'completed'
+                            ? 'success'
+                            : req.status === 'in_progress'
+                            ? 'info'
+                            : req.status === 'cancelled'
+                            ? 'danger'
+                            : 'warning'
+                        }
+                      >
+                        {req.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                    {req.notes && (
+                      <p className="text-xs text-slate-400 max-w-md line-clamp-1">{req.notes}</p>
+                    )}
+                    <span className="text-[11px] text-slate-500 block">
+                      Submitted: {new Date(req.created_at).toLocaleDateString()} • Quote: ${req.total_amount} {req.currency}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    {req.status === 'completed' ? (
+                      <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+                        <CheckCircle2 className="w-4 h-4" /> Complete
+                      </span>
+                    ) : req.status === 'in_progress' ? (
+                      <span className="flex items-center gap-1 text-indigo-400 font-semibold">
+                        <Clock className="w-4 h-4 animate-spin" /> In Progress
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-amber-400 font-semibold">
+                        <AlertCircle className="w-4 h-4" /> Pending Review
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>
