@@ -10,6 +10,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@nexora/ui-tokens';
 import { Card } from '../components/ui';
 import { useLocalization } from '../context/LocalizationContext';
+import {
+  getBrowserClient,
+  fetchUserNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from '@nexora/api';
 
 export interface NotificationItem {
   id: string;
@@ -64,20 +70,68 @@ export function NotificationsScreen({ onUnreadCountChange }: NotificationsScreen
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [filter, setFilter] = useState<'All' | 'Unread' | 'System'>('All');
 
+  const client = getBrowserClient();
+
+  React.useEffect(() => {
+    async function loadRemoteNotifs() {
+      try {
+        const { data: { session } } = await client.auth.getSession();
+        if (session?.user?.id) {
+          const remoteNotifs = await fetchUserNotifications(client, session.user.id);
+          if (remoteNotifs && remoteNotifs.length > 0) {
+            const mapped: NotificationItem[] = remoteNotifs.map((n) => ({
+              id: n.id,
+              type:
+                n.type === 'security_alert'
+                  ? 'security'
+                  : n.type === 'service_update'
+                  ? 'service'
+                  : 'system',
+              title: n.title,
+              message: n.body,
+              timestamp: new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              isRead: n.is_read,
+            }));
+            setNotifications(mapped);
+            if (onUnreadCountChange) {
+              onUnreadCountChange(mapped.filter((x) => !x.isRead).length);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Mobile notifications remote load caught:', err);
+      }
+    }
+    loadRemoteNotifs();
+  }, [client, onUnreadCountChange]);
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     if (onUnreadCountChange) onUnreadCountChange(0);
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user?.id) {
+        await markAllNotificationsAsRead(client, session.user.id);
+      }
+    } catch (err) {
+      console.warn('markAllNotificationsAsRead caught:', err);
+    }
   };
 
-  const toggleNotificationRead = (id: string) => {
+  const toggleNotificationRead = async (id: string) => {
     setNotifications((prev) => {
       const updated = prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
       const remainingUnread = updated.filter((n) => !n.isRead).length;
       if (onUnreadCountChange) onUnreadCountChange(remainingUnread);
       return updated;
     });
+    try {
+      await markNotificationAsRead(client, id);
+    } catch (err) {
+      console.warn('markNotificationAsRead caught:', err);
+    }
   };
 
   const filteredNotifications = notifications.filter((n) => {

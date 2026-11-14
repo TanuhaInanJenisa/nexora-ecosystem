@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth, useRemoteConfig, Button } from '@nexora/ui';
+import { useAuth, useRemoteConfig, Button, NotificationDropdown } from '@nexora/ui';
 import { APP_NAME } from '@nexora/shared';
 import {
   Sparkles,
@@ -121,6 +121,7 @@ export function Navbar() {
 
           {!isLoading && user ? (
             <div className="flex items-center gap-3">
+              <NotificationDropdown />
               <Link
                 href="/dashboard"
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-medium text-white transition-colors"

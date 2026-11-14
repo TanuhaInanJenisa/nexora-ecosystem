@@ -14,4 +14,6 @@ export * from './auth-context';
 export * from './remote-config-context';
 export * from './maintenance-gate';
 export * from './version-gate';
+export * from './ai-assistant-widget';
+export * from './notification-dropdown';
 export * from './utils';

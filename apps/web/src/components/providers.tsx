@@ -7,6 +7,7 @@ import {
   RemoteConfigProvider,
   MaintenanceGate,
   VersionGate,
+  AIAssistantWidget,
 } from '@nexora/ui';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -17,6 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <MaintenanceGate>
             <VersionGate currentVersion="1.0.0">
               {children}
+              <AIAssistantWidget />
             </VersionGate>
           </MaintenanceGate>
         </ToastProvider>
