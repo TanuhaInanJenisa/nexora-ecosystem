@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@nexora/types": ["packages/types/src"],
+      "@nexora/types/*": ["packages/types/src/*"],
+      "@nexora/ui-tokens": ["packages/ui-tokens/src"],
+      "@nexora/ui-tokens/*": ["packages/ui-tokens/src/*"],
+      "@nexora/validation": ["packages/validation/src"],
+      "@nexora/validation/*": ["packages/validation/src/*"],
+      "@nexora/business-logic": ["packages/business-logic/src"],
+      "@nexora/business-logic/*": ["packages/business-logic/src/*"],
+      "@nexora/shared": ["packages/shared/src"],
+      "@nexora/shared/*": ["packages/shared/src/*"],
+      "@nexora/api": ["packages/api/src"],
+      "@nexora/api/*": ["packages/api/src/*"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".turbo",
+    "apps"
+  ]
+}
+

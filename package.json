@@ -1,0 +1,25 @@
+{
+  "name": "nexora-ecosystem",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NEXORA — One Ecosystem. Unlimited Possibilities.",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.4",
+    "typescript": "^5.8.2",
+    "@types/node": "^22.13.9"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
+
