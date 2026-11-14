@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: [
     '@nexora/types',
+    '@nexora/ui',
     '@nexora/ui-tokens',
     '@nexora/validation',
     '@nexora/business-logic',

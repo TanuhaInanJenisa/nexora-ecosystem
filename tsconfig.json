@@ -5,6 +5,8 @@
     "paths": {
       "@nexora/types": ["packages/types/src"],
       "@nexora/types/*": ["packages/types/src/*"],
+      "@nexora/ui": ["packages/ui/src"],
+      "@nexora/ui/*": ["packages/ui/src/*"],
       "@nexora/ui-tokens": ["packages/ui-tokens/src"],
       "@nexora/ui-tokens/*": ["packages/ui-tokens/src/*"],
       "@nexora/validation": ["packages/validation/src"],
