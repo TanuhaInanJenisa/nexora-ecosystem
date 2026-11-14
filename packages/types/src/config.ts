@@ -55,6 +55,20 @@ export interface NavigationItem {
   required_permission?: string;
 }
 
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  image_url: string;
+  target_url?: string | null;
+  target_platform: 'mobile' | 'web' | 'all';
+  is_active: boolean;
+  start_date?: string | null;
+  end_date?: string | null;
+  order_index: number;
+  created_at: string;
+}
+
 export interface RemoteConfigPayload {
   version: string;
   maintenance: MaintenanceSettings;

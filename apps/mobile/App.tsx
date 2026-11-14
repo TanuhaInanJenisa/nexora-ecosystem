@@ -14,6 +14,9 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 import { AppHeader } from './src/components/navigation/AppHeader';
 import { BottomTabBar, TabKey } from './src/components/navigation/BottomTabBar';
 import { LocalizationProvider, useLocalization } from './src/context/LocalizationContext';
+import { MobileRemoteConfigProvider } from './src/context/RemoteConfigContext';
+import { MaintenanceModal } from './src/components/MaintenanceModal';
+import { ForceUpdateModal } from './src/components/ForceUpdateModal';
 import { getBrowserClient, getUserProfile } from '@nexora/api';
 
 type AuthView = 'splash' | 'login' | 'register' | 'main';
@@ -217,7 +220,11 @@ function MainApp() {
 export default function App() {
   return (
     <LocalizationProvider>
-      <MainApp />
+      <MobileRemoteConfigProvider>
+        <MainApp />
+        <MaintenanceModal />
+        <ForceUpdateModal />
+      </MobileRemoteConfigProvider>
     </LocalizationProvider>
   );
 }

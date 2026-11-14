@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth, Button } from '@nexora/ui';
+import { useAuth, useRemoteConfig, Button } from '@nexora/ui';
 import { APP_NAME } from '@nexora/shared';
 import {
   Sparkles,
@@ -17,7 +17,10 @@ import {
 export function Navbar() {
   const pathname = usePathname();
   const { user, profile, roles, isLoading, signOut } = useAuth();
+  const { banners } = useRemoteConfig();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const activeBanner = banners.length > 0 ? banners[0] : null;
 
   // Do not show full navbar on auth screens to keep focused experience
   const isAuthScreen = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
@@ -56,6 +59,23 @@ export function Navbar() {
 
   return (
     <header className="w-full bg-[#0B0F19]/80 backdrop-blur-md border-b border-white/5 fixed top-0 left-0 right-0 z-50">
+      {activeBanner && (
+        <aside
+          aria-label="Promotional Announcement"
+          className="bg-gradient-to-r from-indigo-900/90 via-violet-900/90 to-indigo-900/90 border-b border-indigo-500/20 px-4 py-1.5 text-center text-xs text-white"
+        >
+          <span className="font-semibold text-indigo-300 mr-2">{activeBanner.title}</span>
+          {activeBanner.subtitle && <span className="text-slate-300">{activeBanner.subtitle}</span>}
+          {activeBanner.target_url && (
+            <a
+              href={activeBanner.target_url}
+              className="ml-3 inline-flex items-center text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2"
+            >
+              Learn More →
+            </a>
+          )}
+        </aside>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center gap-8">

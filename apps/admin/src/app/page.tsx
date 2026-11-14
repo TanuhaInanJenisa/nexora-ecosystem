@@ -5,6 +5,12 @@ import { useRouter } from 'next/navigation';
 import { APP_NAME } from '@nexora/shared';
 import { useAuth, Button, Badge, useToast } from '@nexora/ui';
 import {
+  getBrowserClient,
+  updateMaintenanceSettings,
+  updateAppVersionPolicy,
+  updateFeatureFlag,
+} from '@nexora/api';
+import {
   Sliders,
   Users,
   Shield,
@@ -283,21 +289,27 @@ export default function AdminDashboardPage() {
   }, [user, roles, isLoading, router]);
 
   // Handler: Toggle Feature Flag
-  const handleToggleFlag = (id: string) => {
+  const handleToggleFlag = async (id: string) => {
+    const flag = flags.find((f) => f.id === id);
+    if (!flag) return;
+    const nextEnabled = !flag.enabled;
+
     setFlags((prev) =>
-      prev.map((f) => {
-        if (f.id === id) {
-          const updated = { ...f, enabled: !f.enabled };
-          toast({
-            type: 'info',
-            title: 'Feature Flag Updated',
-            message: `"${f.name}" is now ${updated.enabled ? 'Enabled' : 'Disabled'}.`,
-          });
-          return updated;
-        }
-        return f;
-      })
+      prev.map((f) => (f.id === id ? { ...f, enabled: nextEnabled } : f))
     );
+
+    try {
+      const client = getBrowserClient();
+      await updateFeatureFlag(client, id, { is_enabled: nextEnabled });
+    } catch (err) {
+      console.warn('Supabase flag update fallback:', err);
+    }
+
+    toast({
+      type: 'info',
+      title: 'Feature Flag Updated',
+      message: `"${flag.name}" is now ${nextEnabled ? 'Enabled' : 'Disabled'}.`,
+    });
   };
 
   // Handler: Update Flag Rollout Percentage
@@ -383,7 +395,27 @@ export default function AdminDashboardPage() {
   };
 
   // Handler: Save Remote Versioning
-  const handleSaveRemoteConfig = () => {
+  const handleSaveRemoteConfig = async () => {
+    try {
+      const client = getBrowserClient();
+      await Promise.all([
+        updateMaintenanceSettings(client, {
+          is_enabled: maintenanceMode,
+          message: maintenanceMessage,
+        }),
+        updateAppVersionPolicy(client, 'android', {
+          minimum_supported_version: minAppVersion,
+          force_update: enforceVersionUpdate,
+        }),
+        updateAppVersionPolicy(client, 'web', {
+          minimum_supported_version: minAppVersion,
+          force_update: enforceVersionUpdate,
+        }),
+      ]);
+    } catch (err) {
+      console.warn('Realtime Supabase update caught fallback:', err);
+    }
+
     toast({
       type: 'success',
       title: 'Remote Configuration Broadcast',
