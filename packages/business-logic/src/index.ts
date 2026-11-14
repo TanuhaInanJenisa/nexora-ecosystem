@@ -1,5 +1,5 @@
-export * from './permissions';
-export * from './feature-flags';
-export * from './version';
-export * from './formatting';
+export * from './permissions.js';
+export * from './feature-flags.js';
+export * from './version.js';
+export * from './formatting.js';
 

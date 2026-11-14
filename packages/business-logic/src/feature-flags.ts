@@ -1,5 +1,5 @@
 import type { FeatureFlag, UserRole } from '@nexora/types';
-import { compareSemver } from './version';
+import { compareSemver } from './version.js';
 
 /**
  * Deterministic hash of string into 0-99 bucket for consistent percentage rollouts.

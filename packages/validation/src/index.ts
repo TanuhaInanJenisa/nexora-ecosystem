@@ -1,5 +1,5 @@
-export * from './auth';
-export * from './config';
-export * from './services';
-export * from './community';
+export * from './auth.js';
+export * from './config.js';
+export * from './services.js';
+export * from './community.js';
 

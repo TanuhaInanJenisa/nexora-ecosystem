@@ -137,3 +137,4 @@ export const INITIAL_ASSISTANT_MESSAGES: AIMessage[] = [
     timestamp: new Date().toISOString(),
   },
 ];
+

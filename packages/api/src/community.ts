@@ -318,3 +318,4 @@ export function subscribeToCommunityFeed(
     client.removeChannel(channel);
   };
 }
+

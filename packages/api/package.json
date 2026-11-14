@@ -2,13 +2,15 @@
   "name": "@nexora/api",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "test": "node --test test/"
   },
   "dependencies": {
     "@nexora/types": "workspace:*",
@@ -20,4 +22,3 @@
     "typescript": "^5.8.2"
   }
 }
-
