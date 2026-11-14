@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { APP_NAME, APP_TAGLINE } from '@nexora/shared';
 import { Providers } from '../components/providers';
+import { Navbar } from '../components/navbar';
+import { Footer } from '../components/footer';
 
 export const metadata: Metadata = {
   title: `${APP_NAME} — ${APP_TAGLINE}`,
@@ -14,9 +16,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="antialiased min-h-screen bg-slate-50 text-slate-900 dark:bg-[#0B0F19] dark:text-slate-50">
-        <Providers>{children}</Providers>
+    <html lang="en" className="dark">
+      <body className="antialiased min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+        <Providers>
+          <Navbar />
+          <div className="flex-1">
+            {children}
+          </div>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
