@@ -10,4 +10,6 @@ export * from './data-table';
 export * from './pagination';
 export * from './search-filter';
 export * from './stats-card';
+export * from './auth-context';
 export * from './utils';
+

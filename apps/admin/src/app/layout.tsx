@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { APP_NAME } from '@nexora/shared';
+import { Providers } from '../components/providers';
 
 export const metadata: Metadata = {
   title: `${APP_NAME} — Super Admin Command Center`,
@@ -14,10 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen bg-slate-900 text-slate-100">
-        {children}
+      <body className="antialiased min-h-screen bg-[#0B0F19] text-slate-100">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-

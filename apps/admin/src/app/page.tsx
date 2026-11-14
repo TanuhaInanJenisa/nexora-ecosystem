@@ -1,4 +1,9 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { APP_NAME } from '@nexora/shared';
+import { useAuth, Button, Badge } from '@nexora/ui';
 import {
   Sliders,
   Users,
@@ -9,9 +14,37 @@ import {
   Layers,
   Smartphone,
   Globe,
+  LogOut,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
+  const { user, profile, roles, isLoading, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+      const isAuthorizedStaff = roles.some((r) => r !== 'user');
+      if (!isAuthorizedStaff) {
+        router.push('/login');
+      }
+    }
+  }, [user, roles, isLoading, router]);
+
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-[#070A12] text-white p-8 flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center animate-pulse">
+          <Shield className="w-6 h-6 text-indigo-400" />
+        </div>
+        <p className="text-sm text-slate-400">Verifying security clearances...</p>
+      </div>
+    );
+  }
+
   const stats = [
     { label: 'Active Users', value: '1', change: 'Online', icon: Users },
     { label: 'Security Health', value: '100%', change: 'Enforced', icon: Shield },
@@ -29,7 +62,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-[#070A12] text-slate-100 flex flex-col">
       {/* Top Navbar */}
       <header className="border-b border-slate-800 bg-[#0F172A]/80 backdrop-blur px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -41,11 +74,25 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-indigo-400 font-medium">SUPER ADMIN COMMAND CENTER</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Phase 01 Active
-          </span>
+
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="text-xs text-slate-400">{profile?.full_name || user.email}</span>
+            {roles.map((r) => (
+              <Badge key={r} variant="violet" dot>
+                {r.toUpperCase()}
+              </Badge>
+            ))}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={signOut}
+            leftIcon={<LogOut className="w-4 h-4" />}
+          >
+            Sign Out
+          </Button>
         </div>
       </header>
 
@@ -98,4 +145,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

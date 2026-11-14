@@ -197,6 +197,9 @@ importers:
       '@nexora/types':
         specifier: workspace:*
         version: link:../types
+      '@nexora/validation':
+        specifier: workspace:*
+        version: link:../validation
       '@supabase/supabase-js':
         specifier: ^2.49.1
         version: 2.119.0
@@ -236,9 +239,21 @@ importers:
 
   packages/ui:
     dependencies:
+      '@nexora/api':
+        specifier: workspace:*
+        version: link:../api
+      '@nexora/business-logic':
+        specifier: workspace:*
+        version: link:../business-logic
+      '@nexora/types':
+        specifier: workspace:*
+        version: link:../types
       '@nexora/ui-tokens':
         specifier: workspace:*
         version: link:../ui-tokens
+      '@supabase/supabase-js':
+        specifier: ^2.49.1
+        version: 2.119.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

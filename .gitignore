@@ -53,4 +53,5 @@ Thumbs.db
 
 # Turbo Cache
 .turbo
+*.tsbuildinfo
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { APP_NAME, APP_TAGLINE } from '@nexora/shared';
+import { Providers } from '../components/providers';
 
 export const metadata: Metadata = {
   title: `${APP_NAME} — ${APP_TAGLINE}`,
@@ -15,9 +16,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased min-h-screen bg-slate-50 text-slate-900 dark:bg-[#0B0F19] dark:text-slate-50">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-
