@@ -6,7 +6,7 @@ import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardConten
 import { getBrowserClient, signIn, getUserRoles } from '@nexora/api';
 import { loginSchema } from '@nexora/validation';
 import { APP_NAME } from '@nexora/shared';
-import { Shield, ArrowRight, Lock } from 'lucide-react';
+import { Shield, ArrowRight, Lock, AlertCircle } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -15,10 +15,12 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setErrorMessage(null);
 
     const validation = loginSchema.safeParse({ email, password });
     if (!validation.success) {
@@ -27,6 +29,7 @@ export default function AdminLoginPage() {
         if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
       });
       setErrors(fieldErrors);
+      setErrorMessage(validation.error.errors[0]?.message || 'Please fill in all credentials properly.');
       return;
     }
 
@@ -45,10 +48,12 @@ export default function AdminLoginPage() {
 
       if (!isAuthorizedStaff) {
         await client.auth.signOut();
+        const msg = 'Your account does not possess administrative privileges (requires super_admin, system_admin, or manager role).';
+        setErrorMessage(msg);
         toast({
           type: 'error',
           title: 'Access Forbidden',
-          message: 'Your account does not possess administrative privileges.',
+          message: msg,
         });
         return;
       }
@@ -60,10 +65,15 @@ export default function AdminLoginPage() {
       });
       router.push('/');
     } catch (err: any) {
+      let friendlyMsg = err.message || 'Invalid administrative credentials.';
+      if (err.message?.toLowerCase().includes('invalid login credentials')) {
+        friendlyMsg = 'Invalid login credentials. This email is either not registered in Supabase yet, or the password is incorrect. Please register your account at http://localhost:3000/register first.';
+      }
+      setErrorMessage(friendlyMsg);
       toast({
         type: 'error',
         title: 'Login Denied',
-        message: err.message || 'Invalid administrative credentials.',
+        message: friendlyMsg,
       });
     } finally {
       setIsLoading(false);
@@ -94,6 +104,13 @@ export default function AdminLoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {errorMessage && (
+              <div className="mb-4 p-3.5 rounded-xl bg-rose-950/80 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-2.5 shadow-lg animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="flex-1 leading-relaxed font-medium">{errorMessage}</div>
+              </div>
+            )}
+
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <Input
                 label="Admin Email"
@@ -124,6 +141,17 @@ export default function AdminLoginPage() {
               >
                 Authenticate & Enter
               </Button>
+
+              <div className="pt-2 text-center">
+                <a
+                  href="http://localhost:3000/register"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-indigo-400 hover:text-indigo-300 underline font-medium"
+                >
+                  Need an account? Register at Customer Portal →
+                </a>
+              </div>
             </form>
           </CardContent>
           <CardFooter className="justify-center border-t border-slate-800/80 pt-4">
