@@ -7,7 +7,7 @@ import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardConten
 import { getBrowserClient, signIn, signInWithGoogle } from '@nexora/api';
 import { loginSchema } from '@nexora/validation';
 import { APP_NAME, APP_TAGLINE } from '@nexora/shared';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,10 +16,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setErrorMessage(null);
 
     const validation = loginSchema.safeParse({ email, password });
     if (!validation.success) {
@@ -28,6 +30,7 @@ export default function LoginPage() {
         if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
       });
       setErrors(fieldErrors);
+      setErrorMessage(validation.error.errors[0]?.message || 'Please fill in all credentials properly.');
       return;
     }
 
@@ -42,10 +45,15 @@ export default function LoginPage() {
       });
       router.push('/dashboard');
     } catch (err: any) {
+      let friendlyMsg = err.message || 'Invalid email or password.';
+      if (err.message?.toLowerCase().includes('email not confirmed')) {
+        friendlyMsg = 'Email not confirmed yet! Supabase requires email confirmation. You can auto-confirm in Supabase SQL editor or turn off "Confirm email" in Supabase Auth settings.';
+      }
+      setErrorMessage(friendlyMsg);
       toast({
         type: 'error',
         title: 'Authentication Failed',
-        message: err.message || 'Invalid email or password.',
+        message: friendlyMsg,
       });
     } finally {
       setIsLoading(false);
@@ -84,6 +92,13 @@ export default function LoginPage() {
             <CardDescription>Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
+            {errorMessage && (
+              <div className="mb-4 p-3.5 rounded-xl bg-rose-950/80 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-2.5 shadow-lg animate-in fade-in">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="flex-1 leading-relaxed font-medium">{errorMessage}</div>
+              </div>
+            )}
+
             <form onSubmit={handleLogin} className="space-y-4">
               <Input
                 label="Email Address"
