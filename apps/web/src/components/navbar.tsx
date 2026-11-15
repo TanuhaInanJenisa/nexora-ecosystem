@@ -109,7 +109,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-4">
           {isStaff && (
             <Link
-              href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001'}
+              href={`${(process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001').replace(/\/+$/, '')}/login`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold hover:bg-amber-500/20 transition-all"

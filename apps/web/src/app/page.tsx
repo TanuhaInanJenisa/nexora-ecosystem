@@ -183,7 +183,11 @@ export default function HomePage() {
               Explore Services
             </Button>
           </Link>
-          <Link href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001'} target="_blank" rel="noopener noreferrer">
+          <Link
+            href={`${(process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001').replace(/\/+$/, '')}/login`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Button size="lg" variant="secondary" className="w-full sm:w-auto bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30">
               <Shield className="w-4 h-4 mr-2" />
               Super Admin Center

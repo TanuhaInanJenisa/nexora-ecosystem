@@ -11,8 +11,8 @@ import { Shield, ArrowRight, Lock, AlertCircle } from 'lucide-react';
 export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('jenisanstu395@gmail.com');
+  const [password, setPassword] = useState('Admin@123456');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -104,6 +104,36 @@ export default function AdminLoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Master Security Clearance Credentials Quick Card */}
+            <div className="mb-5 p-3.5 rounded-xl bg-indigo-950/60 border border-indigo-500/30 text-xs text-indigo-200 shadow-md">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-indigo-300 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                  Security Master Clearance
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('jenisanstu395@gmail.com');
+                    setPassword('Admin@123456');
+                  }}
+                  className="text-[11px] font-bold bg-indigo-500/20 hover:bg-indigo-500/40 text-cyan-300 px-2.5 py-0.5 rounded-md border border-cyan-400/30 transition-all cursor-pointer"
+                >
+                  ⚡ Auto-Fill
+                </button>
+              </div>
+              <div className="font-mono text-[11px] text-slate-300 space-y-1 bg-black/40 p-2.5 rounded-lg border border-white/5">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Admin Email:</span>
+                  <span className="text-white font-semibold">jenisanstu395@gmail.com</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Security Key:</span>
+                  <span className="text-emerald-400 font-semibold tracking-wider">Admin@123456</span>
+                </div>
+              </div>
+            </div>
+
             {errorMessage && (
               <div className="mb-4 p-3.5 rounded-xl bg-rose-950/80 border border-rose-500/40 text-xs text-rose-200 flex items-start gap-2.5 shadow-lg animate-in fade-in">
                 <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
