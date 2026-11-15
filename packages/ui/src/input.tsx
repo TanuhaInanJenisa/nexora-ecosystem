@@ -45,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute left-3.5 flex items-center pointer-events-none text-slate-500">
               {leftIcon}
             </div>
           )}
@@ -56,15 +56,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             disabled={disabled}
             className={cn(
               'w-full h-11 px-3.5 rounded-xl text-sm transition-all duration-200 outline-none',
-              'bg-white dark:bg-slate-900/80 border text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
+              'bg-white border border-slate-300 text-slate-950 font-medium placeholder:text-slate-400 focus:text-black focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20',
               leftIcon ? 'pl-10' : '',
               rightIcon || isPassword ? 'pr-10' : '',
               error
                 ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20'
-                : 'border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20',
-              disabled && 'opacity-60 cursor-not-allowed bg-slate-50 dark:bg-slate-950',
+                : 'border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20',
+              disabled && 'opacity-60 cursor-not-allowed bg-slate-100 text-slate-400',
               className
             )}
+            style={{ color: '#000000', backgroundColor: '#ffffff', ...props.style }}
             {...props}
           />
           {isPassword ? (
@@ -72,7 +73,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               type="button"
               tabIndex={-1}
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none"
+              className="absolute right-3.5 text-slate-500 hover:text-slate-800 focus:outline-none"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
